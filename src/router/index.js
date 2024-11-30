@@ -150,6 +150,12 @@ const router = createRouter({
             path: '/auth/error',
             name: 'error',
             component: () => import('@/views/pages/auth/Error.vue')
+        },
+         // Add the catch-all route
+         {
+            path: '/:pathMatch(.*)*', // Matches any route not defined above
+            name: 'notfound',
+            component: () => import('@/views/pages/NotFound.vue')
         }
     ]
 });

@@ -3,7 +3,7 @@ import router from '@/router';
 import { environement } from '../../environement';
 
 const api = axios.create({
-  baseURL: environement.baseurl,
+  baseURL: 'http://localhost:8080/api',
   withCredentials: true, // Allow cookies to be sent with requests
 });
 
@@ -34,7 +34,7 @@ api.interceptors.response.use(
         try {
           // Call the refresh endpoint
           const { data } = await axios.post(
-            '/auth/refresh',
+            'http://localhost:8080/api/auth/refresh',
             {},
             { withCredentials: true }
           );
