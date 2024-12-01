@@ -1,11 +1,14 @@
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useToast } from "primevue/usetoast";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Dropdown from "primevue/dropdown";
 import InputText from "primevue/inputtext";
 import PanelMenu from "primevue/panelmenu";
+import sousCategorieService from '@/services/sousCategorieService';
+import superCategorieService from '@/services/superCategorieService';
+import categorieService from '@/services/categorieService';
 
 // Toast for notifications
 const toast = useToast();
@@ -18,35 +21,32 @@ const selectedCategory = ref(null);
 const currentContext = ref(null);
 const newProduct = ref({ name: "", price: "", quantity: "" });
 const formData = ref({ id: null, name: "" });
+// Super Categories Data (initially empty)
+const superCategories = ref([]);
 
-// Super Categories Data
-const superCategories = ref([
-  {
-    id: "1",
-    name: "Electronics",
-    categories: [
-      {
-        id: "1-1",
-        name: "Phones",
-        sousCategories: [
-          { id: "1-1-1", name: "Smartphones", products: [] },
-          { id: "1-1-2", name: "Feature Phones", products: [] },
-        ],
-      },
-      {
-        id: "1-2",
-        name: "Laptops",
-        sousCategories: [
-          { id: "1-2-1", name: "Gaming Laptops", products: [] },
-          { id: "1-2-2", name: "Business Laptops", products: [] },
-        ],
-      },
-    ],
-  },
-]);
-
+// Fetch Super Categories Hierarchy
+const fetchSuperCategories = async () => {
+  try {
+    const response = await superCategorieService.getHiarchy();
+    superCategories.value = response.data; // Assuming the API response contains the hierarchy
+  } catch (error) {
+    console.error("Error fetching super categories hierarchy:", error);
+    toast.add({ 
+      severity: 'error', 
+      summary: 'Error', 
+      detail: 'Failed to fetch super categories.', 
+      life: 3000 
+    });
+  }
+};
 // PanelMenu Data
 const categoriesModel = ref([]);
+
+// Fetch data on component mount
+onMounted(() => {
+  fetchSuperCategories();
+});
+
 
 // Transform Super Categories into PanelMenu Format
 const transformToPanelMenu = () => {
@@ -60,7 +60,7 @@ const transformToPanelMenu = () => {
     })),
   }));
 };
-transformToPanelMenu();
+
 
 // Open Dialog for Adding Entities
 const openDialog = (context) => {
@@ -74,6 +74,7 @@ const openDialog = (context) => {
 // Save Entity (Super Category, Category, Sous-Category)
 const saveEntity = () => {
   if (currentContext.value === "superCategory") {
+    
     superCategories.value.push({
       id: Date.now().toString(),
       name: formData.value.name,
@@ -169,7 +170,7 @@ const closeDialog = () => {
 
     <!-- PanelMenu -->
     <div>
-      <PanelMenu :model="categoriesModel" class="w-full" />
+      <PanelMenu :model="superCategories" class="w-full" />
     </div>
 
     <!-- Dialog for Adding Entities -->
