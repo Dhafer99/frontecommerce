@@ -1,7 +1,7 @@
 import AppLayout from '@/layout/AppLayout.vue';
 import { authService, authState } from '@/services/authService';
 import { createRouter, createWebHistory } from 'vue-router';
-
+import { useAuthStore } from '@/services/auth';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -13,44 +13,51 @@ const router = createRouter({
                     path: '/dashboard',
                     name: 'dashboard',
                     component: () => import('@/views/Dashboard.vue'),
-                    meta: { requiresAuth: true }
+                    meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] },
                 },
                 // this is gonna be product List routing
                 {
                     path: '/productManagement/product',
                     name: 'productList',
-                    component: () => import('@/views/productManagement/Product.vue')
+                    component: () => import('@/views/productManagement/Product.vue'),
+                    meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] },
                 },
                 {
                     path: '/productManagement/createProduct',
                     name: 'productCreate',
-                    component: () => import('@/views/productManagement/CreateProduct.vue')
+                    component: () => import('@/views/productManagement/CreateProduct.vue'),
+                    meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] },
                 },
                 {
                     path: '/uikit/AdminItems',
                     name: 'adminItems',
                     component: () => import('@/views/uikit/AdminItems.vue'),
                     meta: { requiresAuth: true },
+                    meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] },
                 },
                 {
                     path: '/uikit/formlayout',
                     name: 'formlayout',
-                    component: () => import('@/views/uikit/FormLayout.vue')
+                    component: () => import('@/views/uikit/FormLayout.vue'),
+                    meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] },
                 },
                 {
                     path: '/uikit/input',
                     name: 'input',
-                    component: () => import('@/views/uikit/InputDoc.vue')
+                    component: () => import('@/views/uikit/InputDoc.vue'),
+                    meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] },
                 },
                 {
                     path: '/uikit/button',
                     name: 'button',
-                    component: () => import('@/views/uikit/ButtonDoc.vue')
+                    component: () => import('@/views/uikit/ButtonDoc.vue'),
+                    meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] },
                 },
                 {
                     path: '/uikit/table',
                     name: 'table',
-                    component: () => import('@/views/uikit/TableDoc.vue')
+                    component: () => import('@/views/uikit/TableDoc.vue'),
+                    meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] },
                 },
                 {
                     path: '/uikit/list',
@@ -160,22 +167,49 @@ const router = createRouter({
     ]
 });
 
-// Navigation Guard
-router.beforeEach(async (to, from, next) => {
-    // Check if the route requires authentication
-    if (to.matched.some((record) => record.meta.requiresAuth)) {
-        if (!authState.authChecked) {
-            // Check authentication only if it hasn't been checked
-            await authService.isAuthenticated();
-        }
 
-        if (authState.isLoggedIn) {
-            next(); // Allow navigation if authenticated
-        } else {
-            next('/auth/login'); // Redirect to login if not authenticated
+
+router.beforeEach(async (to, from, next) => {
+    const authStore = useAuthStore(); // Use Pinia to manage roles and token
+  
+    try {
+      // Check if the route requires authentication
+      if (to.matched.some((record) => record.meta.requiresAuth)) {
+        // If authentication hasn't been checked, validate it
+        if (!authState.authChecked) {
+          const isAuthenticated = await authService.isAuthenticated();
+  
+          if (isAuthenticated) {
+            // Fetch roles if not already set in the Pinia store
+            if (!authStore.roles.length) {
+              const response = await authService.fetchUserRoles(); // Example API call to fetch roles
+              console.log("ROLES : ",response)
+              authStore.setRoles(response.roles); // Store roles in Pinia
+            }
+          }
         }
-    } else {
-        next(); // Allow navigation for non-protected routes
+  
+        // Check if the user is authenticated
+        if (authState.isLoggedIn) {
+          // Check for role-based access
+          const userRoles = authStore.roles;
+          const requiredRoles = to.meta.roles;
+  
+          if (requiredRoles && !requiredRoles.some((role) => userRoles.includes(role))) {
+            return next('/auth/access'); // Redirect to "Access Denied" page if roles don't match
+          }
+  
+          return next(); // Allow navigation if authenticated and roles match
+        } else {
+          return next('/auth/login'); // Redirect to login if not authenticated
+        }
+      }
+  
+      // If the route doesn't require authentication, allow navigation
+      next();
+    } catch (error) {
+      console.error('Error during navigation guard:', error);
+      next('/auth/login'); // Redirect to login if an error occurs
     }
-});
+  });
 export default router;

@@ -3,21 +3,36 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import authService from '@/services/authService'; // Adjust the path to match your project structure
 import api from '@/services/api';
+import { useAuthStore
 
+ } from '@/services/auth';
 const email = ref('');
 const password = ref('');
 const checked = ref(false);
 const router = useRouter();
+const authStore = useAuthStore();
+
 
 const login = async () => {
   try {
-    const accessToken = await authService.login(email.value, password.value); // Call login API
-    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`; // Set access token for future requests
-    router.push('/dashboard'); // Navigate to the dashboard after successful login
+    // Call login API to get access token
+    const accessToken = await authService.login(email.value, password.value);
+    //api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`; // Set access token for future requests
+
+    // Fetch roles after login
+    const response = await authService.fetchUserRoles(); // Call API to fetch roles
+    authStore.setRoles(response.roles); // Set roles in the auth store
+
+    // Check if roles include ROLE_USER and redirect accordingly
+    if (response.roles.includes('ROLE_USER')) {
+      router.push('/landing'); // Redirect to landing page if ROLE_USER exists
+    } else {
+      router.push('/dashboard'); // Otherwise, navigate to the dashboard
+    }
   } catch (error) {
     console.error('Login failed:', error);
     alert('Login failed. Please check your email and password.');
-    router.push('/auth/login'); // Navigate to the dashboard after successful login
+    router.push('/auth/login'); // Navigate back to login page on failure
   }
 };
 </script>
