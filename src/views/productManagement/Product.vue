@@ -1,5 +1,7 @@
 <script setup>
 import { ProductService } from '@/service/ProductService';
+//import productService from '@/services/productService';
+
 import productService from '@/services/productService';
 import sousCategorieService from '@/services/sousCategorieService';
 import { FilterMatchMode } from '@primevue/core/api';
@@ -8,7 +10,16 @@ import { onMounted, ref, watch } from 'vue';
 
 onMounted(async () => {
     try {
-        ProductService.getProducts().then((data) => (products.value = data));
+        //ProductService.getProducts().then((data) => (products.value = data));  --> old products from template
+        productService.getProducts().then((data)=> (
+
+       products.value = data.data
+            
+          
+          
+
+        ))
+      
         const response = await sousCategorieService.getSousCategorie();
         categories.value = response.data;
     } catch (error) {
@@ -38,6 +49,8 @@ const statuses = ref([
     { label: 'OUTOFSTOCK', value: 'OUTOFSTOCK' }
 ]);
 
+
+
 function formatCurrency(value) {
     if (value) return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     return;
@@ -57,7 +70,9 @@ function hideDialog() {
 function saveProduct() {
     submitted.value = true;
 
-    if (product?.value.name?.trim()) {
+    console.log(product.value.images)
+
+     if (product?.value.name?.trim()) {
         if (product.value.id) {
             // Modify Product: Use the updateData service method for PUT request
             product.value.inventoryStatus = product.value.inventoryStatus.value ? product.value.inventoryStatus.value : product.value.inventoryStatus;
@@ -74,6 +89,16 @@ function saveProduct() {
                     console.error("Error updating product:", error);
                 });
         } else {
+
+
+             // Remove the full sousCategorie object
+             product.value.sousCategorieId = product.value.sousCategorie?.id
+        delete product.value.sousCategorie;
+
+        console.log("product after delete",product.value)
+
+  
+                  
             // Create new Product: Use the postData service method for POST request
             product.value.inventoryStatus = product.value.inventoryStatus ? product.value.inventoryStatus.value : 'INSTOCK';
 
@@ -90,7 +115,7 @@ function saveProduct() {
                 });
         }
         console.log(product);
-    }
+    } 
 }
 
 
@@ -109,9 +134,12 @@ function confirmDeleteProduct(prod) {
 }
 
 function deleteProduct() {
+    productService.deleteProduct(product.value.id) ; 
     products.value = products.value.filter((val) => val.id !== product.value.id);
     deleteProductDialog.value = false;
     product.value = {};
+
+  
     toast.add({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
 }
 
@@ -145,6 +173,10 @@ function confirmDeleteSelected() {
 }
 
 function deleteSelectedProducts() {
+
+
+    const ids  = selectedProducts.value.map(product => product.id)
+   productService.deleteMultipleProducts(ids);
     products.value = products.value.filter((val) => !selectedProducts.value.includes(val));
     deleteProductsDialog.value = false;
     selectedProducts.value = null;
@@ -232,7 +264,7 @@ function removeImage(index) {
                 </template>
             </Toolbar>
 
-            <DataTable
+          <DataTable
                 ref="dt"
                 v-model:selection="selectedProducts"
                 :value="products"
@@ -261,7 +293,7 @@ function removeImage(index) {
                 <Column field="name" header="Name" sortable style="min-width: 16rem"></Column>
                 <Column header="Image">
                     <template #body="slotProps">
-                        <img :src="`https://primefaces.org/cdn/primevue/images/product/${slotProps.data.image}`" :alt="slotProps.data.image" class="rounded" style="width: 64px" />
+                        <img :src="`${slotProps.data.images[0]}`" :alt="slotProps.data.image" class="rounded" style="width: 64px" />
                     </template>
                 </Column>
                 <Column field="price" header="Price" sortable style="min-width: 8rem">
@@ -269,7 +301,11 @@ function removeImage(index) {
                         {{ formatCurrency(slotProps.data.price) }}
                     </template>
                 </Column>
-                <Column field="category" header="Category" sortable style="min-width: 10rem"></Column>
+                <Column field="category" header="Category" sortable style="min-width: 10rem">
+                    <template #body="slotProps">
+                        {{ slotProps.data.sousCategorie.name }}
+                    </template>
+                </Column>
                 <Column field="rating" header="Reviews" sortable style="min-width: 12rem">
                     <template #body="slotProps">
                         <Rating :modelValue="slotProps.data.rating" :readonly="true" />
