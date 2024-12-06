@@ -12,6 +12,9 @@ import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
 import { computed, onMounted, ref } from 'vue';
 import Product from '../productManagement/Product.vue';
+
+
+
 // Toast for notifications
 const toast = useToast();
 
@@ -318,14 +321,6 @@ const openDialog = (context,type, superCategorie,categorie,sousCategorie) => {
     currentContext.value = context; // Context: 'superCategory', 'category', 'sousCategory'
     contexttype.value=type
     formData.value = { id: null, name: '', description: '',fields:[] }; // Default form data
-    if(context === 'superCategory' && !type)
-    {
-      formData.value = {
-        id: superCategorie?.id || null,
-        name: superCategorie?.name || '',
-        description: superCategorie?.description || '',
-      }
-    }
 
     
     // Modify formData and set dropdown initial values based on context
@@ -405,24 +400,6 @@ const openDialog = (context,type, superCategorie,categorie,sousCategorie) => {
 
 // }
 const saveEntity = async () => {
-
-  if (currentContext.value === 'superCategory' && !contexttype.value) {
-    try {
-        const response = await superCategorieService.postData(formData.value);
-        console.log('Super Category created successfully:', response);
-        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Super Category Created', life: 3000 });
-
-       } catch (error) {
-        console.error('Failed to create Super Category:', error);
-        toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to Create Super Category.',
-            life: 3000
-        });
-       }
-  }
-
     if (currentContext.value === 'superCategory') {
        if (contexttype.value==='new')
        {
@@ -530,44 +507,28 @@ const saveEntity = async () => {
    dialogVisible.value = false;
 };
 
-
 // Close Dialog
 const closeDialog = () => {
-  dialogVisible.value = false;
+    dialogVisible.value = false;
 };
 </script>
 
 
 
 
+
+
+
 <template>
   <div class="card">
-    <!-- Toolbar -->
-    <Toolbar class="mb-6">
-      <template #start>
-        <Button
-          label="Add Super Category"
-          icon="pi pi-plus"
-          severity="secondary"
-          class="mr-2"
-          @click="openDialog('superCategory')"
-        />
-        <Button
-          label="Add Category"
-          icon="pi pi-plus"
-          severity="secondary"
-          class="mr-2"
-          @click="openDialog('category')"
-        />
-        <Button
-          label="Add Sous-Category"
-          icon="pi pi-plus"
-          severity="secondary"
-          class="mr-2"
-          @click="openDialog('sousCategory')"
-        />
-      </template>
-    </Toolbar>
+      <!-- Toolbar -->
+      <Toolbar class="mb-6">
+            <template #start>
+                <Button label="Add Super Category" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openDialog('superCategory','new',null)" />
+                <Button label="Add Category" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openDialog('category','new', null)" />
+                <Button label="Add Sous-Category" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openDialog('sousCategory','new', null)" />
+            </template>
+        </Toolbar>
 
         <!-- PanelMenu -->
         <div>
@@ -612,27 +573,31 @@ const closeDialog = () => {
     </PanelMenu>
         </div>
 
-    <!-- Dialog for Adding Entities -->
-    <Dialog v-model:visible="dialogVisible" header="Manage Category" :style="{ width: '400px' }">
-      <div v-if="currentContext === 'category' || currentContext === 'sousCategory'">
-        <label for="superCategory" class="block font-bold mb-3">Select Super Category</label>
-        <Dropdown
-          id="superCategory"
-          v-model="selectedSuperCategory"
-          :options="superCategories"
-          optionLabel="name"
-          placeholder="Choose Super Category"
+        <!-- Dialog for Adding Entities -->
+        <Dialog
+    v-model:visible="dialogVisible"
+    :header="dialogHeader"
+    :style="{ width: '400px' }"
+  >
+    <!-- Super Category Dropdown -->
+    <div v-if="(currentContext === 'category' || currentContext === 'sousCategory') && contexttype === 'new'">
+      <label class="block font-bold mb-3">Super Category</label>
+      <Dropdown
+        v-model="selectedSuperCategory"
+        :options="superCategories"
+        optionLabel="name"
+        placeholder='Choose Super Category'
         />
-      </div>
-      <div v-if="currentContext === 'sousCategory'">
-        <label for="category" class="block font-bold mb-3 mt-3">Select Category</label>
-        <Dropdown
-          id="category"
-          v-model="selectedCategory"
-          :options="selectedSuperCategory?.categories || []"
-          optionLabel="name"
-          placeholder="Choose Category"
-          :disabled="!selectedSuperCategory"
+    </div>
+
+    <!-- Category Dropdown -->
+    <div v-if="currentContext === 'sousCategory' && contexttype==='new' &&  contexttype!=='addToSuperCategory'">
+      <label class="block font-bold mb-3 mt-3">Category</label>
+      <Dropdown
+        v-model="selectedCategory"
+        :options="selectedSuperCategory?.categories || []"
+        optionLabel="name"
+        placeholder="Choose Category"
         />
     </div>
 
