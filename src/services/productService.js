@@ -7,6 +7,8 @@ export const  productService = {
   
   // GET request
   getProducts() {
+
+
     return api.get("/products");
   },
 
@@ -21,9 +23,13 @@ export const  productService = {
   },
 
   // DELETE request
-  deleteData(path) {
-    return api.delete(path);
+  deleteProduct(id) {
+    return api.delete(`/products/${id}`);
+  },
+  deleteMultipleProducts(ids) {
+    return api.delete('/products/delete-multiple', {
+      data: ids, // Pass the list of IDs in the request body
+    });
   },
 };
-
 export default productService;
