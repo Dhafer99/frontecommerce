@@ -9,18 +9,18 @@ const  CategorieService = {
   },
 
   // POST request
-  postData( data) {
+  postData(data) {
     return api.post("/Categories", data);
   },
 
   // PUT request
-  updateData(path, data) {
-    return api.put(path, data);
+  updateData(data,id) {
+    return api.put(`/Categories/${id}`, data);
   },
 
   // DELETE request
-  deleteData(path) {
-    return api.delete(path);
+  deleteData(id) {
+    return api.delete(`/Categories/${id}`);
   },
 };
 

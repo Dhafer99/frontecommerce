@@ -1,4 +1,6 @@
 <script setup>
+import CategorieService from '@/services/categorieService';
+import sousCategorieService from '@/services/sousCategorieService';
 import superCategorieService from '@/services/superCategorieService';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
@@ -6,6 +8,7 @@ import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import PanelMenu from 'primevue/panelmenu';
 import Textarea from 'primevue/textarea';
+import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
 import { computed, onMounted, ref } from 'vue';
 
@@ -14,6 +17,7 @@ const toast = useToast();
 
 // Reactive state for dialogs and data
 const dialogVisible = ref(false);
+const displayConfirmation = ref(false);
 const addProductDialog = ref(false);
 const selectedSuperCategory = ref(null);
 const selectedCategory = ref(null);
@@ -21,6 +25,9 @@ const currentContext = ref(null);
 const contexttype = ref(null);
 const newProduct = ref({ name: '', price: '', quantity: '' });
 const formData = ref({ id: null, name: '',fields:[''] });
+const itemtoDelete=ref(null);
+const confirmPopup = useConfirm();
+
 // Super Categories Data (initially empty)
 const superCategories = ref([]);
  
@@ -61,6 +68,169 @@ const dialogHeader = computed(() => {
       return "Manage Entity";
     });
 
+ function openConfirmation(context,id) {
+  currentContext.value = context;
+  itemtoDelete.value=id;
+    displayConfirmation.value = true;
+}
+function closeConfirmation() {
+    displayConfirmation.value = false;
+}
+const deleteItem= async ()=>{
+  
+  if (currentContext.value === 'superCategory') {
+  try {
+    console.log(itemtoDelete.value);
+    const response = await superCategorieService.deleteData(itemtoDelete.value);
+    console.log('Super Category Deleted successfully:', response);
+    toast.add({
+      severity: 'info',
+      summary: 'Confirmed',
+      detail: 'Super Category deleted successfully!',
+      life: 3000,
+    });
+    fetchSuperCategories();
+  } catch (error) {
+    if (error.response) {
+      const statusCode = error.response.status;
+      if (statusCode === 400) {
+        toast.add({
+          severity: 'error',
+          summary: 'Bad Request',
+          detail: 'Failed to delete: Operation Cannot Procceed , Hiarchy Is not Valid.',
+          life: 3000,
+        });
+      } else if (statusCode === 404) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Not Found',
+          detail: 'Failed to delete: Super Category not found.',
+          life: 3000,
+        });
+      } else {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'An unexpected error occurred.',
+          life: 3000,
+        });
+      }
+    } else {
+      console.error('Failed to Delete Super Category:', error);
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Unable to connect to the server.',
+        life: 3000,
+      });
+    }
+  } finally {
+    closeConfirmation();
+  }
+}
+else
+  if (currentContext.value==='category'){
+    try {
+    console.log(itemtoDelete.value);
+    const response = await CategorieService.deleteData(itemtoDelete.value);
+    console.log('Category Deleted successfully:', response);
+    toast.add({
+      severity: 'info',
+      summary: 'Confirmed',
+      detail: 'Category deleted successfully!',
+      life: 3000,
+    });
+    fetchSuperCategories();
+  } catch (error) {
+    if (error.response) {
+      const statusCode = error.response.status;
+      if (statusCode === 400) {
+        toast.add({
+          severity: 'error',
+          summary: 'Bad Request',
+          detail: 'Failed to delete: Operation Cannot Procceed , Hiarchy Is not Valid.',
+          life: 3000,
+        });
+      } else if (statusCode === 404) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Not Found',
+          detail: 'Failed to delete: Category not found.',
+          life: 3000,
+        });
+      } else {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'An unexpected error occurred.',
+          life: 3000,
+        });
+      }
+    } else {
+      console.error('Failed to Delete Category:', error);
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Unable to connect to the server.',
+        life: 3000,
+      });
+    }
+  } finally {
+    closeConfirmation();
+  }
+  }else
+  if (currentContext.value==='sousCategory'){
+    try {
+    console.log(itemtoDelete.value);
+    const response = await sousCategorieService.deleteData(itemtoDelete.value);
+    console.log('Sous Category Deleted successfully:', response);
+    toast.add({
+      severity: 'info',
+      summary: 'Confirmed',
+      detail: 'Sous Category deleted successfully!',
+      life: 3000,
+    });
+    fetchSuperCategories();
+  } catch (error) {
+    if (error.response) {
+      const statusCode = error.response.status;
+      if (statusCode === 400) {
+        toast.add({
+          severity: 'error',
+          summary: 'Bad Request',
+          detail: 'Failed to delete: Operation Cannot Procceed , Hiarchy Is not Valid.',
+          life: 3000,
+        });
+      } else if (statusCode === 404) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Not Found',
+          detail: 'Failed to delete: Sous Category not found.',
+          life: 3000,
+        });
+      } else {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'An unexpected error occurred.',
+          life: 3000,
+        });
+      }
+    } else {
+      console.error('Failed to Delete Sous Category:', error);
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Unable to connect to the server.',
+        life: 3000,
+      });
+    }
+  } finally {
+    closeConfirmation();
+  }
+  }
+}
+ 
 const transformToPanelMenu = () => {
       categoriesModel.value = superCategories.value.map((superCategory) => ({
         label: superCategory.name,
@@ -68,16 +238,23 @@ const transformToPanelMenu = () => {
             hasButton: true,
             buttonProps: {
                icon: 'pi pi-file',
-              severity: 'secondary',
+              severity: 'info',
               class: 'mr-3',
               onClick: () => openDialog("superCategory","updateSuperCategory",superCategory),
             },
             hasSecondButton:true,
             buttonSecondProps: {
                icon: 'pi pi-plus',
-              severity: 'secondary',
+              severity: 'success',
               class: 'mr-3',
               onClick: () => openDialog("category","addToSuperCategory",superCategory),
+            },
+            hasDeleteButton:true,
+            buttonDeleteProps: {
+               icon: 'pi pi-trash',
+              severity: 'danger',
+              class: 'mr-3',
+              onClick: () => openConfirmation("superCategory",superCategory.id),
             },
           },
         items: superCategory.categories.map((category) => ({
@@ -86,16 +263,23 @@ const transformToPanelMenu = () => {
             hasButton: true,
             buttonProps: {
                icon: 'pi pi-file',
-              severity: 'secondary',
+              severity: 'info',
               class: 'mr-3',
               onClick: () => openDialog("category","updateCategory",superCategory,category),
             },
             hasSecondButton:true,
             buttonSecondProps: {
                icon: 'pi pi-plus',
-              severity: 'secondary',
+              severity: 'help',
               class: 'mr-3',
               onClick: () => openDialog("sousCategory","addToCategory",superCategory,category),
+            },
+            hasDeleteButton:true,
+            buttonDeleteProps: {
+               icon: 'pi pi-trash',
+              severity: 'danger',
+              class: 'mr-3',
+              onClick: () => openConfirmation("category",category.id),
             },
           },
           items: category.sousCategories.map((sousCategory) => ({
@@ -104,10 +288,11 @@ const transformToPanelMenu = () => {
             hasButton: true,
             buttonProps: {
                icon: 'pi pi-file',
-              severity: 'secondary',
+              severity: 'info',
               class: 'mr-2',
               onClick: () => openDialog("sousCategory","updateSousCategory",superCategory,category,sousCategory),
             },
+            // !important,  adding a product will prove dificult with how long it will take ,
             // hasSecondButton:true,
             // buttonSecondProps: {
             //    icon: 'pi pi-plus',
@@ -115,6 +300,13 @@ const transformToPanelMenu = () => {
             //   class: 'mr-2',
             //   onClick: () => openDialog("sousCategory",sousCategory),
             // },
+            hasDeleteButton:true,
+            buttonDeleteProps: {
+               icon: 'pi pi-trash',
+              severity: 'danger',
+              class: 'mr-3',
+              onClick: () => openConfirmation("sousCategory",sousCategory.id),
+            },
           },
           })),
         })),
@@ -125,7 +317,7 @@ const transformToPanelMenu = () => {
 const openDialog = (context,type, superCategorie,categorie,sousCategorie) => {
     currentContext.value = context; // Context: 'superCategory', 'category', 'sousCategory'
     contexttype.value=type
-    formData.value = { id: null, name: '', description: '' }; // Default form data
+    formData.value = { id: null, name: '', description: '',fields:[] }; // Default form data
 
     
     // Modify formData and set dropdown initial values based on context
@@ -142,6 +334,7 @@ const openDialog = (context,type, superCategorie,categorie,sousCategorie) => {
       if (type==="addToSuperCategory"){
         console.log(superCategorie)
         selectedSuperCategory.value = superCategorie?.name
+        formData.value.superCategorie= superCategorie ;
       }
       if (type==='updateCategory')
       {     
@@ -170,7 +363,9 @@ const openDialog = (context,type, superCategorie,categorie,sousCategorie) => {
         
         if (type==='addToCategory')
 {
-  formData.value = { id: null, name: '', description: '',fields:[''] }; // Default form data
+  formData.value = { id: null, name: '', description: '',fields:[''],
+  categorie: categorie || null,
+   }; // Default form data
    selectedCategory.value=superCategorie?.name
    selectedSuperCategory.value = categorie?.name
 
@@ -201,61 +396,112 @@ const openDialog = (context,type, superCategorie,categorie,sousCategorie) => {
 // // addproduct
 
 // }
-const saveEntity = () => {
+const saveEntity = async () => {
     if (currentContext.value === 'superCategory') {
-        superCategories.value.push({
-            id: Date.now().toString(),
-            name: formData.value.name,
-            categories: []
-        });
+       if (contexttype.value==='new')
+       {
+           try {
+        const response = await superCategorieService.postData(formData.value);
+        console.log('Super Category created successfully:', response);
+        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Super Category Created', life: 3000 });
+
+       } catch (error) {
+        console.error('Failed to create Super Category:', error);
         toast.add({
-            severity: 'success',
-            summary: 'Super Category Added',
-            detail: `Super category "${formData.value.name}" added.`
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to Create Super Category.',
+            life: 3000
         });
+       }
+       }
+       if (contexttype.value==='updateSuperCategory'){
+             try {
+        const response = await superCategorieService.updateData(formData.value,formData.value.id);
+        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Super Category Updated', life: 3000 });
+        console.log(' super Category updated successfully:', response);
+       } catch (error) {
+        console.error('Failed to create Super Category:', error);
+        toast.add({severity: 'error', summary: 'Error', detail: 'Failed to Update Super Category.', life: 3000});
+       }
+
+       }
     } else if (currentContext.value === 'category') {
-        if (!selectedSuperCategory.value) {
-            toast.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Please select a Super Category.'
-            });
-            return;
-        }
-        selectedSuperCategory.value.categories.push({
-            id: Date.now().toString(),
-            name: formData.value.name,
-            sousCategories: []
-        });
-        toast.add({
-            severity: 'success',
-            summary: 'Category Added',
-            detail: `Category "${formData.value.name}" added to ${selectedSuperCategory.value.name}.`
-        });
+         if (contexttype.value==='new')
+       {
+         formData.value.superCategorie=selectedSuperCategory;
+         try {
+        const response = await CategorieService.postData(formData.value);
+        console.log('  Category created successfully:', response);
+        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Category Created', life: 3000 });
+
+       } catch (error) {
+        console.error('Failed to create  Category:', error);
+        toast.add({severity: 'error', summary: 'Error', detail: 'Failed to Create Category.', life: 3000});
+       }
+       }
+       if (contexttype.value==='addToSuperCategory'){
+        try {
+        const response = await CategorieService.postData(formData.value);
+        console.log('  Category created successfully:', response);
+        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Category Created', life: 3000 });
+       } catch (error) {
+        console.error('Failed to create Super Category:', error);
+        toast.add({severity: 'error', summary: 'Error', detail: 'Failed to Create Category.', life: 3000});
+       }
+       }
+       if (contexttype.value==='updateCategory')
+       {  
+        try {
+        const response = await CategorieService.updateData(formData.value,formData.value.id);
+        console.log('  Category created successfully:', response);
+        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Category Updated', life: 3000 });
+       } catch (error) {
+        console.error('Failed to create Super Category:', error);
+        toast.add({severity: 'error', summary: 'Error', detail: 'Failed to Update Category.', life: 3000});
+       }
+       }
+       
     } else if (currentContext.value === 'sousCategory') {
-        if (!selectedSuperCategory.value || !selectedCategory.value) {
-            toast.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Please select a Super Category and Category.'
-            });
-            return;
-        }
-        selectedCategory.value.sousCategories.push({
-            id: Date.now().toString(),
-            name: formData.value.name,
-            products: []
-        });
-        toast.add({
-            severity: 'success',
-            summary: 'Sous-Category Added',
-            detail: `Sous-category "${formData.value.name}" added to ${selectedCategory.value.name}.`
-        });
+      if (contexttype.value==='new')
+       {
+      // create sous category from scratch
+       formData.value.categorie=selectedCategory;
+         try {
+        const response = await sousCategorieService.postData(formData.value);
+        console.log('  Category created successfully:', response);
+        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Sous Category Created', life: 3000 });
+       } catch (error) {
+        console.error('Failed to create Super Category:', error);
+        toast.add({severity: 'error', summary: 'Error', detail: 'Failed to Create Sous Category.', life: 3000});
+       }
+       }
+       if (contexttype.value==='addToCategory'){
+        try {
+          console.log(formData.value)
+        const response = await sousCategorieService.postData(formData.value);
+        console.log('  Category created successfully:', response);
+        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Sous Category Created', life: 3000 });
+       } catch (error) {
+        console.error('Failed to create Super Category:', error);
+        toast.add({severity: 'error', summary: 'Error', detail: 'Failed to Create Sous Category.', life: 3000});
+       }
+       }
+       if (contexttype.value  ==='updateSousCategory'){
+        try {
+        const response = await sousCategorieService.updateData(formData.value,formData.value.id);
+        console.log('  Category created successfully:', response);
+        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Sous Category Updated', life: 3000 });
+
+       } catch (error) {
+        console.error('Failed to create Super Category:', error);
+        toast.add({severity: 'error', summary: 'Error', detail: 'Failed to Update Sous Category.', life: 3000});
+       }
+       }
     }
 
-    // Update PanelMenu Data
-    transformToPanelMenu();
-    dialogVisible.value = false;
+    fetchSuperCategories();
+   dialogVisible.value = false;
 };
 
 // Close Dialog
@@ -281,12 +527,13 @@ const closeDialog = () => {
           <PanelMenu :model="categoriesModel" class="w-full">
       <!-- Custom item rendering -->
       <template #item="slotProps">
-        <div class="flex items-center justify-between pd-10">
+        <div class="flex items-center justify-between p-3">
           <!-- Arrow Icon with Label (left) -->
           <Button
-            class="p-button-text p-button-sm mr-2"
+            class="p-button-text p-button-sm mr-2 "
             :label="slotProps.item.label"
             :icon="slotProps.active ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            :style="{ fontSize: '16px' }" 
             @click="slotProps.toggle"
           />
 
@@ -304,7 +551,14 @@ const closeDialog = () => {
                 class="mr-2"
               />
             </template>
-          </div>
+            <template v-if="slotProps.item.props?.hasDeleteButton">
+               <Button
+              v-bind="slotProps.item.props.buttonDeleteProps"
+              class="mr-2"
+              />
+            </template>
+          
+           </div>
         </div>
       </template>
     </PanelMenu>
@@ -338,8 +592,8 @@ const closeDialog = () => {
         />
     </div>
 
-    <div v-if="currentContext === 'sousCategory' || currentContext === 'category' && contexttype!=='new' && contexttype!=='updateSuperCategory'  ">
-      <label for="supers" class="block font-bold mb-3">Super Categoryeee</label>
+    <div v-if="(currentContext === 'sousCategory' || currentContext === 'category') && contexttype!=='new' && contexttype!=='updateSuperCategory'  ">
+      <label for="supers" class="block font-bold mb-3">Super Category</label>
       <InputText id="supers" :value=selectedSuperCategory  :placeholder=selectedSuperCategory disabled="true" />
     </div>
     <div v-if="currentContext === 'category' && contexttype!=='new' && contexttype!=='updateCategory' &&  contexttype!=='addToSuperCategory'"  >
@@ -405,6 +659,16 @@ const closeDialog = () => {
       <Button label="Save" icon="pi pi-check" @click="saveEntity" />
     </template>
   </Dialog>
+  <Dialog header="Confirmation" v-model:visible="displayConfirmation" :style="{ width: '350px' }" :modal="true">
+                    <div class="flex items-center justify-center">
+                        <i class="pi pi-exclamation-triangle mr-4" style="font-size: 2rem" />
+                        <span>Are you sure you want to proceed?</span>
+                    </div>
+                    <template #footer>
+                        <Button label="No" icon="pi pi-times" @click="closeConfirmation" text severity="secondary" />
+                        <Button label="Yes" icon="pi pi-check" @click="deleteItem" severity="danger" outlined autofocus />
+                    </template>
+                </Dialog>
     </div>
 </template>
 

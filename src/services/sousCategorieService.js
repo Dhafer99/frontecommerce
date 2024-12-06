@@ -9,18 +9,18 @@ const  sousCategorieService = {
   },
 
   // POST request
-  postData(path, data) {
-    return api.post(path, data);
+  postData(data) {
+    return api.post("/sousCategories", data);
   },
 
   // PUT request
-  updateData(path, data) {
-    return api.put(path, data);
+  updateData(data,id) {
+    return api.put(`/sousCategories/${id}`, data);
   },
 
   // DELETE request
-  deleteData(path) {
-    return api.delete(path);
+  deleteData(id) {
+    return api.delete(`/sousCategories/${id}`);
   },
 };
 
