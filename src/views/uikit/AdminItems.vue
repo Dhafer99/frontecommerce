@@ -11,7 +11,7 @@ import Textarea from 'primevue/textarea';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
 import { computed, onMounted, ref } from 'vue';
-
+import Product from '../productManagement/Product.vue';
 // Toast for notifications
 const toast = useToast();
 
@@ -318,6 +318,14 @@ const openDialog = (context,type, superCategorie,categorie,sousCategorie) => {
     currentContext.value = context; // Context: 'superCategory', 'category', 'sousCategory'
     contexttype.value=type
     formData.value = { id: null, name: '', description: '',fields:[] }; // Default form data
+    if(context === 'superCategory' && !type)
+    {
+      formData.value = {
+        id: superCategorie?.id || null,
+        name: superCategorie?.name || '',
+        description: superCategorie?.description || '',
+      }
+    }
 
     
     // Modify formData and set dropdown initial values based on context
@@ -397,6 +405,24 @@ const openDialog = (context,type, superCategorie,categorie,sousCategorie) => {
 
 // }
 const saveEntity = async () => {
+
+  if (currentContext.value === 'superCategory' && !contexttype.value) {
+    try {
+        const response = await superCategorieService.postData(formData.value);
+        console.log('Super Category created successfully:', response);
+        toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Operation Successfull : Super Category Created', life: 3000 });
+
+       } catch (error) {
+        console.error('Failed to create Super Category:', error);
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to Create Super Category.',
+            life: 3000
+        });
+       }
+  }
+
     if (currentContext.value === 'superCategory') {
        if (contexttype.value==='new')
        {
@@ -688,6 +714,8 @@ const closeDialog = () => {
                     </template>
                 </Dialog>
     </div>
+
+    <Product></Product>
 </template>
 
 
