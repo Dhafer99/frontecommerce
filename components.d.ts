@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+
     Accordion: typeof import('primevue/accordion')['default']
     AccordionContent: typeof import('primevue/accordioncontent')['default']
     AccordionHeader: typeof import('primevue/accordionheader')['default']
@@ -15,22 +16,35 @@ declare module 'vue' {
     Avatar: typeof import('primevue/avatar')['default']
     AvatarGroup: typeof import('primevue/avatargroup')['default']
     Badge: typeof import('primevue/badge')['default']
+
+    AutoComplete: typeof import('primevue/autocomplete')['default']
+    Breadcrumb: typeof import('primevue/breadcrumb')['default']
+
     Button: typeof import('primevue/button')['default']
     ButtonGroup: typeof import('primevue/buttongroup')['default']
     Card: typeof import('primevue/card')['default']
     Chart: typeof import('primevue/chart')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
+
     Chip: typeof import('primevue/chip')['default']
     ColorPicker: typeof import('primevue/colorpicker')['default']
-    Column: typeof import('primevue/column')['default']
+  
     ConfirmPopup: typeof import('primevue/confirmpopup')['default']
+
+  
+    Column: typeof import('primevue/column')['default']
+    ContextMenu: typeof import('primevue/contextmenu')['default']
+
     DataTable: typeof import('primevue/datatable')['default']
     DataView: typeof import('primevue/dataview')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
+
     Drawer: typeof import('primevue/drawer')['default']
     Fieldset: typeof import('primevue/fieldset')['default']
+
+
     FileUpload: typeof import('primevue/fileupload')['default']
     FloatingConfigurator: typeof import('./src/components/FloatingConfigurator.vue')['default']
     FloatLabel: typeof import('primevue/floatlabel')['default']
@@ -43,7 +57,13 @@ declare module 'vue' {
     InputText: typeof import('primevue/inputtext')['default']
     Knob: typeof import('primevue/knob')['default']
     Listbox: typeof import('primevue/listbox')['default']
+
     Menu: typeof import('primevue/menu')['default']
+
+    MegaMenu: typeof import('primevue/megamenu')['default']
+   
+    Menubar: typeof import('primevue/menubar')['default']
+
     Message: typeof import('primevue/message')['default']
     MultiSelect: typeof import('primevue/multiselect')['default']
     OrderList: typeof import('primevue/orderlist')['default']
@@ -64,6 +84,7 @@ declare module 'vue' {
     Skeleton: typeof import('primevue/skeleton')['default']
     Slider: typeof import('primevue/slider')['default']
     SplitButton: typeof import('primevue/splitbutton')['default']
+
     Splitter: typeof import('primevue/splitter')['default']
     SplitterPanel: typeof import('primevue/splitterpanel')['default']
     Tab: typeof import('primevue/tab')['default']
@@ -73,12 +94,24 @@ declare module 'vue' {
     Tabs: typeof import('primevue/tabs')['default']
     Tag: typeof import('primevue/tag')['default']
     Textarea: typeof import('primevue/textarea')['default']
+
+    Step: typeof import('primevue/step')['default']
+    StepList: typeof import('primevue/steplist')['default']
+    Stepper: typeof import('primevue/stepper')['default']
+  
+   
+    TieredMenu: typeof import('primevue/tieredmenu')['default']
+
     Timeline: typeof import('primevue/timeline')['default']
     Toast: typeof import('primevue/toast')['default']
     ToggleButton: typeof import('primevue/togglebutton')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
     Toolbar: typeof import('primevue/toolbar')['default']
+
+    Tree: typeof import('primevue/tree')['default']
     TreeSelect: typeof import('primevue/treeselect')['default']
+    TreeTable: typeof import('primevue/treetable')['default']
+
   }
   export interface ComponentCustomProperties {
     StyleClass: typeof import('primevue/styleclass')['default']

@@ -2,9 +2,11 @@ import api from "./api";
 
  
 // Example Service
-const  productService = {
+export const  productService = {
+
+  
   // GET request
-  getSousCategorie() {
+  getProducts() {
     return api.get("/products");
   },
 
